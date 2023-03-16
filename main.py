@@ -7,7 +7,6 @@ import prompts
 intents = discord.Intents.all()
 openai.api_key = os.environ['OPENAI_API_KEY']
 client = discord.Client(intents=intents)
-
 '''
 **Violette tone translator**
 v say - violette will say what you write in her own words
@@ -29,6 +28,7 @@ AUTHORIZED_ROLES = [1009894592562339902, 1074067345917624373]
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
+
 
 @client.event
 async def on_message(message):
@@ -55,9 +55,9 @@ async def on_message(message):
     {prompts.violette_background}
     {prompts.tone}
 
-    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. Output your answer in 'Y'.
+    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. Output your answer as 'Violette'.
     X:{human_input}
-    Y:'''
+    Violette:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
@@ -67,7 +67,8 @@ async def on_message(message):
                                                 "role": "user",
                                                 "content": prompt
                                               },
-                                            ])
+                                            ],
+                                            temperature=0.75)
     print(response.choices[0].message.content)
     await message.channel.send(response.choices[0].message.content,
                                reference=referenced_message)
@@ -83,9 +84,9 @@ async def on_message(message):
     {prompts.violette_background}
     {prompts.tone}
     
-    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. 'X' is meant to be expressed in a sarcastic tone. Output your answer in 'Y'.
+    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. 'X' is meant to be expressed in a sarcastic tone. Output your answer as 'Violette'.
     X:{human_input}
-    Y:'''
+    Violette:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
@@ -95,7 +96,8 @@ async def on_message(message):
                                                 "role": "user",
                                                 "content": prompt
                                               },
-                                            ])
+                                            ],
+                                            temperature=0.75)
     print(response.choices[0].message.content)
     await message.channel.send(response.choices[0].message.content,
                                reference=referenced_message)
@@ -112,6 +114,7 @@ async def on_message(message):
   if message.content.startswith('v reply') and message.reference is not None:
     referenced_message = await message.channel.fetch_message(
       message.reference.message_id)
+    referenced_user = referenced_message.author.name
     human_input = referenced_message.content
     await message.delete()
 
@@ -120,9 +123,9 @@ async def on_message(message):
     {prompts.violette_background}
     {prompts.tone}
 
-    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from 'X' below, and reply to it in the way that Violette would, with their tone and mannerisms. Output your answer in 'Y'.
-    X:{human_input}
-    Y:'''
+    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from {referenced_user} below, and reply to it in the way that Violette would, with their tone and mannerisms. Output your answer as 'Violette'.
+    {referenced_user}:{human_input}
+    Violette:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
@@ -132,7 +135,8 @@ async def on_message(message):
                                                 "role": "user",
                                                 "content": prompt
                                               },
-                                            ])
+                                            ],
+                                            temperature=0.75)
     print(response.choices[0].message.content)
     await message.channel.send(response.choices[0].message.content,
                                reference=referenced_message)
@@ -141,6 +145,7 @@ async def on_message(message):
       'v sarcastic reply') and message.reference is not None:
     referenced_message = await message.channel.fetch_message(
       message.reference.message_id)
+    referenced_user = referenced_message.author.name
     human_input = referenced_message.content
     await message.delete()
 
@@ -149,9 +154,9 @@ async def on_message(message):
     {prompts.violette_background}
     {prompts.tone}
 
-    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from 'X' below, and reply to it in the way that Violette would, with their tone and mannerisms. Use vicious sarcasm. Output your answer in 'Y'.
-    X:{human_input}
-    Y:'''
+    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from {referenced_user} below, and reply to it in the way that Violette would, with their tone and mannerisms. Use vicious sarcasm. Output your answer as 'Violette'.
+    {referenced_user}:{human_input}
+    Violette:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
@@ -161,20 +166,20 @@ async def on_message(message):
                                                 "role": "user",
                                                 "content": prompt
                                               },
-                                            ])
+                                            ],
+                                            temperature=0.75)
     print(response.choices[0].message.content)
     await message.channel.send(response.choices[0].message.content,
                                reference=referenced_message)
 
   if message.content == 'v delete':
-      # Get the bot's previous message
-      async for previous_message in message.channel.history(limit=50):
-          if previous_message.author == client.user:
-              # Delete the bot's previous message
-              await previous_message.delete()
-              break
-      await message.delete()
-
+    # Get the bot's previous message
+    async for previous_message in message.channel.history(limit=50):
+      if previous_message.author == client.user:
+        # Delete the bot's previous message
+        await previous_message.delete()
+        break
+    await message.delete()
 
 
 keep_alive()
