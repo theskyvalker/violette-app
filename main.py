@@ -7,18 +7,22 @@ import prompts
 intents = discord.Intents.all()
 openai.api_key = os.environ['OPENAI_API_KEY']
 client = discord.Client(intents=intents)
-'''
-Roleplay as Violette
-v say - violette will say what you write in her own words
-v !say - she will emote first, and then say
-v !sarcasm - she will say what you write in a sarcastic tone
-v !say exactly - violette will say exactly what you write, how you write it
 
-Make Violette Reply on her own
-v reply - violette will reply to a message in her own words
-v !reply - she will emote first, and then reply
-v !sarcastic reply - she will reply in a sarcastic tone
 '''
+**Violette tone translator**
+v say - violette will say what you write in her own words
+v sarcasm - she will say what you write in a sarcastic tone
+v repeat - violette will say exactly what you write, how you write it
+
+**Violette will use her own words**
+Violette will use the replied to message as a prompt if you type:
+v reply - violette will reply to a message in her own words
+v sarcastic reply - she will reply in a sarcastic tone
+
+**Delete last message**
+v delete - will delete her last message if it is within 50 messages
+'''
+
 AUTHORIZED_ROLES = [1009894592562339902, 1074067345917624373]
 
 
@@ -45,13 +49,21 @@ async def on_message(message):
     human_input = message.content[len('v say'):].strip()
     await message.delete()
 
+    set_up = '''You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms.'''
+
     prompt = f'''{prompts.who_is_violette}
+    {prompts.violette_background}
     {prompts.tone}
-    Rewrite the following dialogue in a way Violette would say it, as dialogue: {human_input}'''
+
+    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. Output your answer in 'Y'.
+    X:{human_input}
+    Y:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
                                               {
+                                                "role": "system",
+                                                "content": set_up,
                                                 "role": "user",
                                                 "content": prompt
                                               },
@@ -66,13 +78,20 @@ async def on_message(message):
     human_input = message.content[len('v sarcasm'):].strip()
     await message.delete()
 
+    set_up = '''You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms.'''
     prompt = f'''{prompts.who_is_violette}
+    {prompts.violette_background}
     {prompts.tone}
-    Rewrite the following dialogue in a way Violette would say it, as dialogue, and use sarcasm: {human_input}'''
+    
+    You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms. Take the dialogue from 'X' below, and reword it to sound like Violette would say it, with their tone and mannerisms. 'X' is meant to be expressed in a sarcastic tone. Output your answer in 'Y'.
+    X:{human_input}
+    Y:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
                                               {
+                                                "role": "system",
+                                                "content": set_up,
                                                 "role": "user",
                                                 "content": prompt
                                               },
@@ -96,14 +115,20 @@ async def on_message(message):
     human_input = referenced_message.content
     await message.delete()
 
+    set_up = '''You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms.'''
     prompt = f'''{prompts.who_is_violette}
     {prompts.violette_background}
     {prompts.tone}
-    Reply conversationally to the following message as if you were Violette, as dialogue: {human_input}'''
+
+    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from 'X' below, and reply to it in the way that Violette would, with their tone and mannerisms. Output your answer in 'Y'.
+    X:{human_input}
+    Y:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
                                               {
+                                                "role": "system",
+                                                "content": set_up,
                                                 "role": "user",
                                                 "content": prompt
                                               },
@@ -119,14 +144,20 @@ async def on_message(message):
     human_input = referenced_message.content
     await message.delete()
 
+    set_up = '''You are a brilliant fantasy writer. You are able to take dialogue from one character and reword it to sound like a completely different character said it, with their tone and mannerisms.'''
     prompt = f'''{prompts.who_is_violette}
     {prompts.violette_background}
     {prompts.tone}
-    Reply with dialogue to the following message as if you were Violette, as dialogue, and use sarcasm: {human_input}'''
+
+    You are a brilliant fantasy writer. You are able to take dialogue from one message and convincingly reply in the style of a different character, with their tone and mannerisms. Read the dialogue from 'X' below, and reply to it in the way that Violette would, with their tone and mannerisms. Use vicious sarcasm. Output your answer in 'Y'.
+    X:{human_input}
+    Y:'''
 
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo",
                                             messages=[
                                               {
+                                                "role": "system",
+                                                "content": set_up,
                                                 "role": "user",
                                                 "content": prompt
                                               },
